@@ -150,12 +150,12 @@ int am2315_test(void *_am) {
 	
 	unsigned char send[3];
 	send[0] = AM2315_CMD_READ_REG;
-	send[1] = AM2315_REG_TMP_H;
-	send[2] = 0x00;
+	send[1] = 0x00;
+	send[2] = 0x04;
 	
-	int32_t error = write(am->file, send, 4);
+	int32_t error = write(am->file, send, 3);
 	DEBUG("error: %i\n", error);
-	usleep(2000); // 2ms
+	usleep(10*1000); // 10ms
 	
 	unsigned char buf[8];
 	
@@ -164,9 +164,19 @@ int am2315_test(void *_am) {
 	} else {
 		int i;
 		for(i = 0; i < 8; i++) {
-			printf("byte %i: %#x\n", i, buf[i]);
+			DEBUG("byte %i: %#x\n", i, buf[i]);
 		}
 	}
+	
+	int sign = buf[4] & 0x80;
+	sign = sign > 0 ? -1 : 1;
+	
+	int tmp_high = buf[4] & 0x7F; // ignore first bit
+	int tmp_low = buf[5];
+	int tmp = (tmp_high<<8) + tmp_low;
+	tmp = tmp * sign / 10.0;
+	
+	DEBUG("tmp: %i\n", tmp);
 	
 	return 0;
 }
