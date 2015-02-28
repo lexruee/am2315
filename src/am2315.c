@@ -148,6 +148,21 @@ int am2315_test(void *_am) {
 	// todo
 	am2315_wakeup(_am);
 	
+	int32_t error = i2c_smbus_write_byte_data(am->file, AM2315_CMD_READ_REG, AM2315_REG_TMP_H);
+	DEBUG("error: %i\n", error);
+	usleep(2000); // 2ms
+	
+	unsigned char buf[8];
+	
+	if(read(am->file, &buf, 8)< 0 ) {
+		DEBUG("error: read()\n");
+	} else {
+		int i;
+		for(i = 0; i < 8; i++) {
+			printf("byte %i: %#x\n", i, buf[i]);
+		}
+	}
+	
 	return 0;
 }
 
