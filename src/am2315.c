@@ -77,6 +77,7 @@ typedef struct {
 /*
  * Prototypes for helper functions
  */
+void am2315_wakeup(void *_am);
 int am2315_set_addr(void *_am);
 int32_t am2315_read_raw_temperature(void *_am);
 int32_t am2315_read_raw_humidty(void *_am);
@@ -86,6 +87,18 @@ unsigned short crc16(unsigned char *ptr, unsigned char len);
 /*
  * Implemetation of the helper functions
  */
+
+/*
+ * 
+ */
+
+void am2315_wakeup(void *_am) {
+	am2315_t* am = TO_AM(_am);
+	int32_t data = i2c_smbus_write_byte(am->file, 0);
+	if(data < 0)
+		DEBUG("error: wakeup()\n");
+	usleep(900); // 900us
+}
 
 /*
  * Computes the crc code.
@@ -130,14 +143,22 @@ int am2315_set_addr(void *_am) {
  * Implementation of the interface functions
  */
 
+int am2315_test(void *_am) {
+	am2315_t *am = TO_AM(_am);
+	// todo
+	am2315_wakeup(_am);
+	
+	return 0;
+}
+
 int32_t am2315_read_raw_temperature(void *_am) {
-	am2315_t *am = TO_AM(_am); 
+	am2315_t *am = TO_AM(_am);
 	// todo
 	return 0;
 }
 
 int32_t am2315_read_raw_humidty(void *_am) {
-	am2315_t *am = TO_AM(_am); 
+	am2315_t *am = TO_AM(_am);
 	// todo
 	return 0;
 }

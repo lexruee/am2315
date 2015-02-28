@@ -10,14 +10,7 @@ int main(int argc, char **argv){
 	
 	
 	if(am != NULL){
-		int i;
-		for(i = 0; i < 10; i++) {
-			float temperature = am2315_temperature(am);
-			float humidity = am2315_humidity(am);
-			printf("t = %f, h = %f\n", temperature, humidity);
-			usleep(2 * 1000 * 1000);
-		}
-	
+		am2315_test(am);
 		am2315_close(am);
 	}
 	
