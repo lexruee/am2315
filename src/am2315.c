@@ -30,7 +30,7 @@
  */
 
 #define __AM2315_DEBUG__
-#ifdef __AM2315__DEBUG__				
+#ifdef __AM2315_DEBUG__				
 #define DEBUG(...)	printf(__VA_ARGS__)
 #else
 #define DEBUG(...)
