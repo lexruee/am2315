@@ -173,7 +173,7 @@ int am2315_test(void *_am) {
 	
 	int tmp_high = buf[4] & 0x7F; // ignore first bit
 	int tmp_low = buf[5];
-	int tmp = (tmp_high<<8) + tmp_low;
+	float tmp = (tmp_high<<8) + tmp_low;
 	tmp = tmp * sign / 10.0;
 	
 	DEBUG("tmp: %i\n", tmp);
