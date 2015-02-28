@@ -22,6 +22,21 @@
 #include <math.h>
 #endif
 
+/*
+ * am2315 commands
+ */
+#define AM2315_CMD_READ_REG 0x03
+#define AM2315_CMD_WRITE_REG 0x10
+
+/*
+ * am2315 humidity register
+ */
+#define AM2315_REG_HUM_H 0x00
+
+/*
+ * am2315 temperature register
+ */
+#define AM2315_REG_TMP_H 0x02
 
 
 
@@ -63,12 +78,40 @@ typedef struct {
  * Prototypes for helper functions
  */
 int am2315_set_addr(void *_am);
+int32_t am2315_read_raw_temperature(void *_am);
+int32_t am2315_read_raw_humidty(void *_am);
+unsigned short crc16(unsigned char *ptr, unsigned char len);
 
 
 /*
  * Implemetation of the helper functions
  */
 
+/*
+ * Computes the crc code.
+ * 
+ * @param char pointer
+ * @param length
+ * @return crc
+ */
+unsigned short crc16(unsigned char *ptr, unsigned char len) {
+	unsigned short crc = 0xFFFF;
+	unsigned char i;
+	
+	while(len--) {
+		crc ^= *ptr++;
+		for(i = 0; i < 8; i++) {
+			if(crc & 0x01) {
+				crc >>= 1;
+				crc ^= 0xA001;
+			} else {
+				crc >>= 1;
+			}
+		}
+		
+	}
+	return crc;
+}
 
 /*
  * Sets the address for the i2c device file.
@@ -87,6 +130,17 @@ int am2315_set_addr(void *_am) {
  * Implementation of the interface functions
  */
 
+int32_t am2315_read_raw_temperature(void *_am) {
+	am2315_t *am = TO_AM(_am); 
+	// todo
+	return 0;
+}
+
+int32_t am2315_read_raw_humidty(void *_am) {
+	am2315_t *am = TO_AM(_am); 
+	// todo
+	return 0;
+}
 
 
 /**
