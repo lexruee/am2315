@@ -176,7 +176,7 @@ int am2315_test(void *_am) {
 	float tmp = (tmp_high<<8) + tmp_low;
 	tmp = tmp * sign / 10.0;
 	
-	DEBUG("tmp: %i\n", tmp);
+	DEBUG("tmp: %f\n", tmp);
 	
 	return 0;
 }
