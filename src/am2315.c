@@ -148,7 +148,13 @@ int am2315_test(void *_am) {
 	// todo
 	am2315_wakeup(_am);
 	
-	int32_t error = i2c_smbus_write_byte_data(am->file, AM2315_CMD_READ_REG, AM2315_REG_TMP_H);
+	unsigned char send[4];
+	send[0] = 0x5C; //todo: fix that
+	send[1] = AM2315_CMD_READ_REG;
+	send[2] = 0x00;
+	send[3] = 0x04;
+	
+	int32_t error = write(am->file, send, 4);
 	DEBUG("error: %i\n", error);
 	usleep(2000); // 2ms
 	
