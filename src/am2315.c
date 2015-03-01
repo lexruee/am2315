@@ -211,7 +211,7 @@ int am2315_read_data(void *_am, float *temperature, float *humidity) {
 	float tmp;
 	temperature_h = buf[4] & 0x7F; // ignore first bit
 	temperature_l = buf[5];
-	float tmp = (temperature_h << 8) + temperature_l;
+	tmp = (temperature_h << 8) + temperature_l;
 	tmp = tmp * sign / 10.0;
 	*temperature = tmp;
 	
