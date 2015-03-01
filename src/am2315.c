@@ -294,7 +294,7 @@ void am2315_close(void *_am) {
  */
 float am2315_temperature(void *_am) {
 	float temperature, humidity;
-	return am2315_read_data(_am, &temperature, &humidity);
+	am2315_read_data(_am, &temperature, &humidity);
 	return temperature;
 }
 
@@ -308,6 +308,6 @@ float am2315_temperature(void *_am) {
  */
 float am2315_humidity(void *_am) {
 	float temperature, humidity;
-	return am2315_read_data(_am, &temperature, &humidity);
+	am2315_read_data(_am, &temperature, &humidity);
 	return humidity;
 }
