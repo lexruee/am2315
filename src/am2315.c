@@ -181,7 +181,7 @@ int am2315_test(void *_am) {
 	tmp = tmp * sign / 10.0;
 	
 	uint16_t crc_res = am2315_crc16(buf, 6);
-	uint16_t crc = (buf[6]<<8) + buf[6];
+	uint16_t crc = (buf[6]<<8) + buf[7];
 	
 	DEBUG("tmp: %f\n", tmp);
 	DEBUG("hum: %f\n", hum);
