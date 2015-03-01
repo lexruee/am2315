@@ -193,6 +193,11 @@ int am2315_read_data(void *_am, float *temperature, float *humidity) {
 	if(read(am->file, &buf, 8) < 0 ) {
 		DEBUG("error: read()\n");
 		return -1;
+	} else {
+		int i;
+		for(i = 0; i < 8; i++) {
+			DEBUG("byte %i: %#x\n", i, buf[i]);
+		}
 	}
 		
 	// compute humidity value
