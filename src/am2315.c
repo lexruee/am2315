@@ -172,11 +172,11 @@ int am2315_read_data(void *_am, float *temperature, float *humidity) {
 	
 	am2315_wakeup(_am);
 	
-	unsigned char send[3] = { 
-		AM2315_CMD_READ_REG,	// read command
-		0x00, 					// use start register 0x00
-		0x04 					// read 4 bytes
-	};
+	unsigned char send[3]; 
+	send[0] = AM2315_CMD_READ_REG;	// read command
+	send[1] = 0x00;					// use start register 0x00
+	send[2] = 0x04;					// read 4 bytes
+	
 	// in other words we read the bytes 0x00, 0x01, 0x02, 0x03
 	// 0x00 = humidity_h, 0x01 = humidity_l, 
 	// 0x02 = temperature_h, 0x03 = temperature_l
@@ -186,7 +186,7 @@ int am2315_read_data(void *_am, float *temperature, float *humidity) {
 		return -1;
 	}
 	
-	usleep(20*1000); // 10ms
+	usleep(10*1000); // 10ms
 	
 	unsigned char buf[8]; // data buffer
 	
@@ -197,26 +197,30 @@ int am2315_read_data(void *_am, float *temperature, float *humidity) {
 		
 	// compute humidity value
 	int humidity_h, humidity_l;
+	float hum;
 	humidity_h = buf[2] << 8;
 	humidity_l = buf[3];
-	*humidity = (humidity_h + humidity_l) / 10.0;
-		
+	hum = (humidity_h + humidity_l) / 10.0;
+	*humidity = hum;
+	
 	// compute temperature value
 	int sign = buf[4] & 0x80; // get first bit
 	sign = sign > 0 ? -1 : 1; // if 1: tmp is negative; otherwise positive
 	
 	int temperature_h, temperature_l;
+	float tmp;
 	temperature_h = buf[4] & 0x7F; // ignore first bit
 	temperature_l = buf[5];
 	float tmp = (temperature_h << 8) + temperature_l;
-	*temperature = tmp * sign / 10.0;
+	tmp = tmp * sign / 10.0;
+	*temperature = tmp;
 	
 	// compute crc
 	uint16_t crc_res = am2315_crc16(buf, 6);
 	uint16_t crc = (buf[7] << 8) + buf[6];
 		
-	DEBUG("tmp: %f\n", *temperature);
-	DEBUG("hum: %f\n", *humidity);
+	DEBUG("tmp: %f\n", tmp);
+	DEBUG("hum: %f\n", hum);
 	DEBUG("crc: %i\n", crc);
 	DEBUG("crc_res: %i\n", crc_res);
 	DEBUG("crc_ok: %i\n", crc_res == crc);
