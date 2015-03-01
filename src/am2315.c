@@ -143,53 +143,65 @@ int am2315_set_addr(void *_am) {
  * Implementation of the interface functions
  */
 
-int am2315_test(void *_am) {
+int am2315_read_data(void *_am, float *temperature, float *humidity) {
 	am2315_t *am = TO_AM(_am);
-	// todo
+	
 	am2315_wakeup(_am);
 	
-	unsigned char send[3];
-	send[0] = AM2315_CMD_READ_REG;
-	send[1] = 0x00;
-	send[2] = 0x04;
+	unsigned char send[3] = { 
+		AM2315_CMD_READ_REG,	// read command
+		0x00, 					// use start register 0x00
+		0x04 					// read 4 bytes
+	};
+	// in other words we read the bytes 0x00, 0x01, 0x02, 0x03
+	// 0x00 = humidity_h, 0x01 = humidity_l, 
+	// 0x02 = temperature_h, 0x03 = temperature_l
 	
-	int32_t error = write(am->file, send, 3);
-	DEBUG("error: %i\n", error);
-	usleep(10*1000); // 10ms
-	
-	unsigned char buf[8];
-	
-	if(read(am->file, &buf, 8)< 0 ) {
-		DEBUG("error: read()\n");
-	} else {
-		int i;
-		for(i = 0; i < 8; i++) {
-			DEBUG("byte %i: %#x\n", i, buf[i]);
-		}
+	if(write(am->file, send, 3) < 0) {
+		DEBUG("error: write()\n");
+		return -1;
 	}
 	
-	int hum_high = buf[2] << 8;
-	int hum_low = buf[3];
-	float hum = (hum_high + hum_low)/10.0;
+	usleep(10*1000); // 10ms
 	
+	unsigned char buf[8]; // data buffer
+	
+	if(read(am->file, &buf, 8) < 0 ) {
+		DEBUG("error: read()\n");
+		return -1;
+	}
+		
+	// compute humidity value
+	int humidity_h, humidity_l;
+	humidity_h = buf[2] << 8;
+	humidity_l = buf[3];
+	*humidity = (humidity_h + humidity_l) / 10.0;
+		
+	// compute temperature value
 	int sign = buf[4] & 0x80; // get first bit
 	sign = sign > 0 ? -1 : 1; // if 1: tmp is negative; otherwise positive
 	
-	int tmp_high = buf[4] & 0x7F; // ignore first bit
-	int tmp_low = buf[5];
-	float tmp = (tmp_high<<8) + tmp_low;
-	tmp = tmp * sign / 10.0;
+	int temperature_h, temperature_l;
+	temperature_h = buf[4] & 0x7F; // ignore first bit
+	temperature_l = buf[5];
+	float tmp = (temperature_h << 8) + temperature_l;
+	*temperature = tmp * sign / 10.0;
 	
 	uint16_t crc_res = am2315_crc16(buf, 6);
 	uint16_t crc = (buf[7] << 8) + buf[6];
-	
-	DEBUG("tmp: %f\n", tmp);
-	DEBUG("hum: %f\n", hum);
+		
+	DEBUG("tmp: %f\n", *temperature);
+	DEBUG("hum: %f\n", *humidity);
 	DEBUG("crc: %i\n", crc);
 	DEBUG("crc_res: %i\n", crc_res);
 	DEBUG("crc_ok: %i\n", crc_res == crc);
-	
-	return 0;
+		
+	return crc_res == crc;
+}
+
+int am2315_test(void *_am) {
+	float temperature, humidity;
+	return am2315_read_data(_am, &temperature, &humidity);
 }
 
 int32_t am2315_read_raw_temperature(void *_am) {
