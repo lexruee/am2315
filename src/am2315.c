@@ -186,7 +186,7 @@ int am2315_test(void *_am) {
 	DEBUG("hum: %f\n", hum);
 	DEBUG("crc_1: %i\n", buf[6]);
 	DEBUG("crc_2: %i\n", buf[7]);
-	DEBUG("crc_res1: %i\n", crc_res & 0xFF00);
+	DEBUG("crc_res1: %i\n", (crc_res & 0xFF00) >> 8);
 	DEBUG("crc_res2: %i\n", crc_res & 0x00FF);
 	
 	return 0;
