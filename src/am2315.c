@@ -177,6 +177,7 @@ int am2315_read_data(void *_am, float *temperature, float *humidity) {
 	send[1] = 0x00;					// use start register 0x00
 	send[2] = 0x04;					// read 4 bytes
 	
+	am2315_wakeup(_am);
 	// in other words we read the bytes 0x00, 0x01, 0x02, 0x03
 	// 0x00 = humidity_h, 0x01 = humidity_l, 
 	// 0x02 = temperature_h, 0x03 = temperature_l
