@@ -107,7 +107,7 @@ void am2315_wakeup(void *_am) {
  * @param length
  * @return crc
  */
-unsigned short crc16(unsigned char *ptr, unsigned char len) {
+unsigned short am2315_crc16(unsigned char *ptr, unsigned char len) {
 	unsigned short crc = 0xFFFF;
 	unsigned char i;
 	
@@ -180,8 +180,12 @@ int am2315_test(void *_am) {
 	float tmp = (tmp_high<<8) + tmp_low;
 	tmp = tmp * sign / 10.0;
 	
+	unsigned char crc = { buf[6], buf[7] };
+	int crc_res = am2315_crc16(&crc, 2);
+	
 	DEBUG("tmp: %f\n", tmp);
 	DEBUG("hum: %f\n", hum);
+	DEBUG("crc: %i\n", crc_res);
 	
 	return 0;
 }
