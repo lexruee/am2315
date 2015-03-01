@@ -105,8 +105,13 @@ void am2315_wakeup(void *_am) {
  * 
  */
 
-float am2315_compute_humidity(unsigned char humidity_h, unsigned char humidity_l) {
-	return ((humidity_h << 8) + humidity_l) / 10.0;
+float am2315_compute_humidity(unsigned char msb, unsigned char lsb) {
+	int humidity_h, humidity_l;
+	float hum;
+	humidity_h = msb << 8;
+	humidity_l = lsb;
+	hum = (humidity_h + humidity_l) / 10.0;
+	return hum;
 }
 
 
@@ -114,11 +119,19 @@ float am2315_compute_humidity(unsigned char humidity_h, unsigned char humidity_l
  * 
  */
 
-float am2315_compute_temperature(unsigned char temperature_h, unsigned char temperature_l) {
-	int sign = temperature_h & 0x80; // get first bit
-	sign = sign > 0 ? -1 : 1; // if 1: tmp is negative; otherwise positive
-	temperature_h = temperature_h & 0x7F; // ignore first bit
-	return ((temperature_h << 8) + temperature_l) * sign / 10.0;
+float am2315_compute_temperature(unsigned char msb, unsigned char lsb) {
+	int temperature_h, temperature_l;
+	float tmp;
+	
+	temperature_h = msb & 0x7F; // ignore first bit
+	temperature_l = lsb;
+	tmp = (temperature_h << 8) + temperature_l;
+	tmp /= 10.0;
+	
+	if(msb & 0x80) // check if negative
+		tmp *= -1;
+	
+	return tmp;
 }
 
 /*
@@ -201,31 +214,17 @@ int am2315_read_data(void *_am, float *temperature, float *humidity) {
 	}
 		
 	// compute humidity value
-	int humidity_h, humidity_l;
-	float hum;
-	humidity_h = buf[2] << 8;
-	humidity_l = buf[3];
-	hum = (humidity_h + humidity_l) / 10.0;
-	*humidity = hum;
+	*humidity = am2315_compute_humidity(buf[2], buf[3]);
 	
 	// compute temperature value
-	int sign = buf[4] & 0x80; // get first bit
-	sign = sign > 0 ? -1 : 1; // if 1: tmp is negative; otherwise positive
-	
-	int temperature_h, temperature_l;
-	float tmp;
-	temperature_h = buf[4] & 0x7F; // ignore first bit
-	temperature_l = buf[5];
-	tmp = (temperature_h << 8) + temperature_l;
-	tmp = tmp * sign / 10.0;
-	*temperature = tmp;
+	*temperature = am2315_compute_temperature(buf[4], buf[5]);
 	
 	// compute crc
 	uint16_t crc_res = am2315_crc16(buf, 6);
 	uint16_t crc = (buf[7] << 8) + buf[6];
 		
-	DEBUG("tmp: %f\n", tmp);
-	DEBUG("hum: %f\n", hum);
+	DEBUG("tmp: %f\n", *temperature);
+	DEBUG("hum: %f\n", *humidity);
 	DEBUG("crc: %i\n", crc);
 	DEBUG("crc_res: %i\n", crc_res);
 	DEBUG("crc_ok: %i\n", crc_res == crc);
