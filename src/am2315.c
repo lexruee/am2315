@@ -26,24 +26,12 @@
  * am2315 commands
  */
 #define AM2315_CMD_READ_REG 0x03
-#define AM2315_CMD_WRITE_REG 0x10
-
-/*
- * am2315 humidity register
- */
-#define AM2315_REG_HUM_H 0x00
-
-/*
- * am2315 temperature register
- */
-#define AM2315_REG_TMP_H 0x02
 
 
 
 /*
  * Define debug function.
  */
-
 #define __AM2315_DEBUG__
 #ifdef __AM2315_DEBUG__				
 #define DEBUG(...)	printf(__VA_ARGS__)
@@ -79,7 +67,7 @@ typedef struct {
  */
 void am2315_wakeup(void *_am);
 int am2315_set_addr(void *_am);
-float iam2315_compute_temperature(unsigned char temperature_h, unsigned char temperature_l);
+float am2315_compute_temperature(unsigned char temperature_h, unsigned char temperature_l);
 float am2315_compute_humidty(unsigned char humidty_h, unsigned char humidty_l);
 int am2315_read_data(void *_am, float *temperature, float *humidity);
 unsigned short crc16(unsigned char *ptr, unsigned char len);
@@ -89,8 +77,9 @@ unsigned short crc16(unsigned char *ptr, unsigned char len);
  * Implemetation of the helper functions
  */
 
+
 /*
- * 
+ * Wakeup the am2315 sensor.
  */
 void am2315_wakeup(void *_am) {
 	am2315_t* am = TO_AM(_am);
@@ -101,10 +90,14 @@ void am2315_wakeup(void *_am) {
 }
 
 
-/*
- * 
- */
 
+/*
+ * Compute humidity value based on the msb and lsb bytes.
+ * 
+ * @param msb
+ * @param lsb
+ * @return humidity
+ */
 float am2315_compute_humidity(unsigned char msb, unsigned char lsb) {
 	int humidity_h, humidity_l;
 	float hum;
@@ -116,9 +109,12 @@ float am2315_compute_humidity(unsigned char msb, unsigned char lsb) {
 
 
 /*
+ * Compute temperature value based on the msb and lsb bytes. 
  * 
+ * @param msb
+ * @param lsb
+ * @return temperature
  */
-
 float am2315_compute_temperature(unsigned char msb, unsigned char lsb) {
 	int temperature_h, temperature_l;
 	float tmp;
@@ -133,6 +129,8 @@ float am2315_compute_temperature(unsigned char msb, unsigned char lsb) {
 	
 	return tmp;
 }
+
+
 
 /*
  * Computes the crc code.
@@ -164,6 +162,9 @@ uint16_t am2315_crc16(unsigned char *ptr, unsigned char len) {
 
 /*
  * Sets the address for the i2c device file.
+ * 
+ * @param am2315 sensor
+ * @return error code
  */
 int am2315_set_addr(void *_am) {
 	am2315_t* am = TO_AM(_am);
@@ -178,7 +179,17 @@ int am2315_set_addr(void *_am) {
 
 
 /*
+ * Implementation of the interface functions
+ */
+
+
+/**
+ * Read temperature and humidity value from the am2315 sensor.
  * 
+ * @param am2315 sensor
+ * @param temperature
+ * @param humidity
+ * @return crc check (1 for ok)
  */
 int am2315_read_data(void *_am, float *temperature, float *humidity) {
 	am2315_t *am = TO_AM(_am);
@@ -232,10 +243,6 @@ int am2315_read_data(void *_am, float *temperature, float *humidity) {
 	return crc_res == crc;
 }
 
-/*
- * Implementation of the interface functions
- */
-
 
 
 /**
@@ -287,6 +294,7 @@ void *am2315_init(int address, const char* i2c_device_filepath) {
 }
 
 
+
 /**
  * Closes a AM2315 object.
  * 
@@ -304,6 +312,7 @@ void am2315_close(void *_am) {
 	free(am); // free bmp structure
 	_am = NULL;
 } 
+
 
 
 /**
