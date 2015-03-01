@@ -196,9 +196,21 @@ int am2315_read_data(void *_am, float *temperature, float *humidity) {
 	}
 		
 	// compute humidity value
-	*humidity = am2315_compute_humidity(buf[2], buf[3]);
+	int humidity_h, humidity_l;
+	humidity_h = buf[2] << 8;
+	humidity_l = buf[3];
+	*humidity = (humidity_h + humidity_l) / 10.0;
+		
 	// compute temperature value
-	*temperature = am2315_compute_humidity(buf[4], buf[5]);
+	int sign = buf[4] & 0x80; // get first bit
+	sign = sign > 0 ? -1 : 1; // if 1: tmp is negative; otherwise positive
+	
+	int temperature_h, temperature_l;
+	temperature_h = buf[4] & 0x7F; // ignore first bit
+	temperature_l = buf[5];
+	float tmp = (temperature_h << 8) + temperature_l;
+	*temperature = tmp * sign / 10.0;
+	
 	// compute crc
 	uint16_t crc_res = am2315_crc16(buf, 6);
 	uint16_t crc = (buf[7] << 8) + buf[6];
