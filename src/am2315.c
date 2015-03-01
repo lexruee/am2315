@@ -79,8 +79,9 @@ typedef struct {
  */
 void am2315_wakeup(void *_am);
 int am2315_set_addr(void *_am);
-int32_t am2315_read_raw_temperature(void *_am);
-int32_t am2315_read_raw_humidty(void *_am);
+float iam2315_compute_temperature(unsigned char temperature_h, unsigned char temperature_l);
+float am2315_compute_humidty(unsigned char humidty_h, unsigned char humidty_l);
+int am2315_read_data(void *_am, float *temperature, float *humidity);
 unsigned short crc16(unsigned char *ptr, unsigned char len);
 
 
@@ -91,13 +92,33 @@ unsigned short crc16(unsigned char *ptr, unsigned char len);
 /*
  * 
  */
-
 void am2315_wakeup(void *_am) {
 	am2315_t* am = TO_AM(_am);
 	int32_t data = i2c_smbus_write_byte(am->file, 0);
 	if(data < 0)
 		DEBUG("error: wakeup()\n");
 	usleep(900); // 900us
+}
+
+
+/*
+ * 
+ */
+
+float am2315_compute_humidity(unsigned char humidity_h, unsigned char humidity_l) {
+	return ((humidity_h << 8) + humidity_l) / 10.0;
+}
+
+
+/*
+ * 
+ */
+
+float am2315_compute_temperature(unsigned char temperature_h, unsigned char temperature_l) {
+	int sign = temperature_h & 0x80; // get first bit
+	sign = sign > 0 ? -1 : 1; // if 1: tmp is negative; otherwise positive
+	temperature_h = temperature_h & 0x7F; // ignore first bit
+	return ((temperature_h << 8) + temperature_l) * sign / 10.0;
 }
 
 /*
@@ -126,6 +147,8 @@ uint16_t am2315_crc16(unsigned char *ptr, unsigned char len) {
 	return crc;
 }
 
+
+
 /*
  * Sets the address for the i2c device file.
  */
@@ -139,10 +162,11 @@ int am2315_set_addr(void *_am) {
 	return error;
 }
 
-/*
- * Implementation of the interface functions
- */
 
+
+/*
+ * 
+ */
 int am2315_read_data(void *_am, float *temperature, float *humidity) {
 	am2315_t *am = TO_AM(_am);
 	
@@ -172,21 +196,10 @@ int am2315_read_data(void *_am, float *temperature, float *humidity) {
 	}
 		
 	// compute humidity value
-	int humidity_h, humidity_l;
-	humidity_h = buf[2] << 8;
-	humidity_l = buf[3];
-	*humidity = (humidity_h + humidity_l) / 10.0;
-		
+	*humidity = am2315_compute_humidity(buf[2], buf[3]);
 	// compute temperature value
-	int sign = buf[4] & 0x80; // get first bit
-	sign = sign > 0 ? -1 : 1; // if 1: tmp is negative; otherwise positive
-	
-	int temperature_h, temperature_l;
-	temperature_h = buf[4] & 0x7F; // ignore first bit
-	temperature_l = buf[5];
-	float tmp = (temperature_h << 8) + temperature_l;
-	*temperature = tmp * sign / 10.0;
-	
+	*temperature = am2315_compute_humidity(buf[4], buf[5]);
+	// compute crc
 	uint16_t crc_res = am2315_crc16(buf, 6);
 	uint16_t crc = (buf[7] << 8) + buf[6];
 		
@@ -199,22 +212,10 @@ int am2315_read_data(void *_am, float *temperature, float *humidity) {
 	return crc_res == crc;
 }
 
-int am2315_test(void *_am) {
-	float temperature, humidity;
-	return am2315_read_data(_am, &temperature, &humidity);
-}
+/*
+ * Implementation of the interface functions
+ */
 
-int32_t am2315_read_raw_temperature(void *_am) {
-	am2315_t *am = TO_AM(_am);
-	// todo
-	return 0;
-}
-
-int32_t am2315_read_raw_humidty(void *_am) {
-	am2315_t *am = TO_AM(_am);
-	// todo
-	return 0;
-}
 
 
 /**
@@ -292,16 +293,21 @@ void am2315_close(void *_am) {
  * @return temperature
  */
 float am2315_temperature(void *_am) {
-	return 0;
+	float temperature, humidity;
+	return am2315_read_data(_am, &temperature, &humidity);
+	return temperature;
 }
 
 
+
 /**
- * Returns the measured humidity.
+ * Returns the measured humidity in percentage.
  * 
  * @param am2315 sensor
  * @return humidity
  */
 float am2315_humidity(void *_am) {
-	return 0;
+	float temperature, humidity;
+	return am2315_read_data(_am, &temperature, &humidity);
+	return humidity;
 }

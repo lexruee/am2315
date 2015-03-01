@@ -13,6 +13,3 @@ void am2315_close(void *_am);
 float am2315_temperature(void *_am);
 
 float am2315_humidity(void *_am);
-
-
-int am2315_test(void *_am) ;
