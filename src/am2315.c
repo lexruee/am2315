@@ -181,13 +181,13 @@ int am2315_test(void *_am) {
 	tmp = tmp * sign / 10.0;
 	
 	uint16_t crc_res = am2315_crc16(buf, 6);
+	uint16_t crc = (buf[7] << 8) + buf[6];
 	
 	DEBUG("tmp: %f\n", tmp);
 	DEBUG("hum: %f\n", hum);
-	DEBUG("crc_1: %i\n", buf[6]);
-	DEBUG("crc_2: %i\n", buf[7]);
-	DEBUG("crc_res1: %i\n", (crc_res & 0xFF00) >> 8);
-	DEBUG("crc_res2: %i\n", crc_res & 0x00FF);
+	DEBUG("crc: %i\n", crc);
+	DEBUG("crc_res: %i\n", crc_res);
+	DEBUG("crc_ok: %i\n", crc_res == crc);
 	
 	return 0;
 }
