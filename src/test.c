@@ -11,7 +11,7 @@ int main(int argc, char **argv){
 	
 	if(am != NULL){
 		float temperature, humidity;
-		temperature = am2315_temperature(am);
+		temperature = am2315_read_data(am, &temperature, &humidity);
 		humidity = am2315_humidity(am);
 		printf("temperature = %f, humidity = %f\n", temperature, humidity);
 		am2315_close(am);

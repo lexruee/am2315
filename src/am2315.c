@@ -186,7 +186,7 @@ int am2315_read_data(void *_am, float *temperature, float *humidity) {
 		return -1;
 	}
 	
-	usleep(10*1000); // 10ms
+	usleep(20*1000); // 10ms
 	
 	unsigned char buf[8]; // data buffer
 	
