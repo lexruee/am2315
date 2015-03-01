@@ -168,8 +168,12 @@ int am2315_test(void *_am) {
 		}
 	}
 	
-	int sign = buf[4] & 0x80;
-	sign = sign > 0 ? -1 : 1;
+	int hum_high = buf[2] << 8;
+	int hum_low = buf[3];
+	float hum = (hum_high + hum_low)/10.0;
+	
+	int sign = buf[4] & 0x80; // get first bit
+	sign = sign > 0 ? -1 : 1; // if 1: tmp is negative; otherwise positive
 	
 	int tmp_high = buf[4] & 0x7F; // ignore first bit
 	int tmp_low = buf[5];
@@ -177,6 +181,7 @@ int am2315_test(void *_am) {
 	tmp = tmp * sign / 10.0;
 	
 	DEBUG("tmp: %f\n", tmp);
+	DEBUG("hum: %f\n", hum);
 	
 	return 0;
 }
