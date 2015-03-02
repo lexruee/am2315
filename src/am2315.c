@@ -196,7 +196,7 @@ int am2315_read_data(void *_am, float *temperature, float *humidity) {
 	
 	am2315_wakeup(_am);
 	
-	unsigned char send[3] = {
+	static unsigned char send[3] = {
 		AM2315_CMD_READ_REG,	// read command
 		0x00,					// use start register 0x00
 		0x04					// read 4 bytes
