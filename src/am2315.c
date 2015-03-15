@@ -71,7 +71,7 @@ float am2315_compute_temperature(unsigned char temperature_h, unsigned char temp
 float am2315_compute_humidty(unsigned char humidty_h, unsigned char humidty_l);
 int am2315_read_data(void *_am, float *temperature, float *humidity);
 unsigned short crc16(unsigned char *ptr, unsigned char len);
-
+void am2315_init_error_cleanup(void *_am);
 
 /*
  * Implemetation of the helper functions
@@ -178,6 +178,25 @@ int am2315_set_addr(void *_am) {
 
 
 
+
+/*
+ * Frees allocated memory in the init function.
+ * 
+ * @param am2315 sensor
+ */
+void am2315_init_error_cleanup(void *_am) {
+	am2315_t* am = TO_AM(_am);
+	
+	if(am->i2c_device != NULL) {
+		free(am->i2c_device);
+		am->i2c_device = NULL;
+	}
+	
+	free(am);
+	am = NULL;
+}
+
+
 /*
  * Implementation of the interface functions
  */
@@ -269,6 +288,7 @@ void *am2315_init(int address, const char* i2c_device_filepath) {
 	am->i2c_device = (char*) malloc(strlen(i2c_device_filepath) * sizeof(char));
 	if(am->i2c_device == NULL) {
 		DEBUG("error: malloc returns NULL pointer!\n");
+		am2315_init_error_cleanup(_am);
 		return NULL;
 	}
 
@@ -279,12 +299,15 @@ void *am2315_init(int address, const char* i2c_device_filepath) {
 	int file;
 	if((file = open(am->i2c_device, O_RDWR)) < 0) {
 		DEBUG("error: %s open() failed\n", am->i2c_device);
+		am2315_init_error_cleanup(_am);
 		return NULL;
 	}
 	am->file = file;
 
-	if(am2315_set_addr(_am) < 0)
+	if(am2315_set_addr(_am) < 0) {
+		am2315_init_error_cleanup(_am);
 		return NULL;
+	}
 
 	// setup i2c device
 	
@@ -301,6 +324,10 @@ void *am2315_init(int address, const char* i2c_device_filepath) {
  * @param am2315 sensor
  */
 void am2315_close(void *_am) {
+	if(_am == NULL) {
+		return;
+	}
+	
 	DEBUG("close am2315 device\n");
 	am2315_t *am = TO_AM(_am);
 	
