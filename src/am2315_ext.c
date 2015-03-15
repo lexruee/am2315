@@ -19,7 +19,6 @@ typedef struct {
 
 static void AM2315_dealloc(AM2315_Object *self) {
 	am2315_close(self->am2315);
-	self->am2315 = NULL;
 	self->ob_type->tp_free((PyObject*)self);
 }
 
@@ -39,8 +38,13 @@ static int AM2315_init(AM2315_Object *self, PyObject *args, PyObject *kwds) {
 	if(!PyArg_ParseTupleAndKeywords(args, kwds, "is", kwlist, &address, &i2c_device))
 		return -1;
 		
-	if(i2c_device) 
+	if(i2c_device) {
 		self->am2315 = am2315_init(address, i2c_device);
+		if(self->am2315 == NULL) {
+			PyErr_SetString(PyExc_RuntimeError, "Cannot initialize sensor. Run program as root and check i2c device / address.");
+			return -1;
+		}	
+	}
 
 	return 0;
 }
