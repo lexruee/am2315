@@ -77,9 +77,9 @@ static PyObject *AM2315_sense(AM2315_Object *self) {
 
 
 static PyMethodDef AM2315_methods[] = {
-	{"temperature", (PyCFunction) AM2315_temperature, METH_NOARGS, "Return the temperature value"},
-	{"humidity", (PyCFunction) AM2315_humidity, METH_NOARGS, "Return the altitude value"},
-	{"sense", (PyCFunction) AM2315_sense, METH_NOARGS, "Return the (temperature, humidity, crc_check) triple"},
+	{"temperature", (PyCFunction) AM2315_temperature, METH_NOARGS, "Returns a temperature value"},
+	{"humidity", (PyCFunction) AM2315_humidity, METH_NOARGS, "Returns a humidity value"},
+	{"sense", (PyCFunction) AM2315_sense, METH_NOARGS, "Returns a (temperature, humidity, crc_check) triple"},
 	{NULL}  /* Sentinel */
 };
 
